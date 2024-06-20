@@ -277,6 +277,7 @@ while running:
             hit = False
 
         player1.draw_hand(screen, player1, 465, 420, 30, 1)
+        dealer.draw_hand(screen, dealer, 465, 10, 30, 2)
 
         if bet_placed == False and player1.balance > 0:
             screen.blit(button_image_2, (265, 310))  
