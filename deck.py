@@ -1,5 +1,6 @@
 import pygame
 import random
+from helper import *
 
 cards = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
 twos = ['C2.png', 'D2.png', 'H2.png', 'S2.png']
@@ -29,6 +30,8 @@ class Dealer:
         self.hand_images = []
 
     def hit_card(self, card_deck):
+        if not card_deck:
+            card_deck = cards * 4
         card = random.choice(card_deck)
         card_deck.remove(card)
         self.hand.append(card)
@@ -67,7 +70,7 @@ class Dealer:
             elif player_type == 2:
                 card_pos_y = start_y + (i * card_offset)
             # Draw the card
-            card_image = pygame.image.load('assets/images/cards/'+str(card))
+            card_image = pygame.image.load(resource_path2(str(card)))
             card_image = pygame.transform.scale(card_image, (90, 130))
             screen.blit(card_image, (start_x, card_pos_y))
 

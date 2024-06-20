@@ -2,11 +2,23 @@ import pygame
 from pygame.locals import *
 from deck import *
 import sys
+from helper import *
 
 # Initialize Pygame
 pygame.init()
 
 pygame.mixer.init()
+click = pygame.mixer.Sound(resource_path2('click.mp3'))
+card_flip = pygame.mixer.Sound(resource_path2('card.mp3'))
+win = pygame.mixer.Sound(resource_path2('win.mp3'))
+reset = pygame.mixer.Sound(resource_path2('reset.mp3'))
+game_over = pygame.mixer.Sound(resource_path2('game_over.mp3'))
+coin = pygame.mixer.Sound(resource_path2('coin.mp3'))
+draw = pygame.mixer.Sound(resource_path2('draw.mp3'))
+background = pygame.mixer.Sound(resource_path2('background.mp3'))
+loss = pygame.mixer.Sound(resource_path2('loss.mp3'))
+
+background.play(-1)
 
 # Set up the screen
 screen = pygame.display.set_mode((1000, 600))
@@ -14,24 +26,23 @@ pygame.display.set_caption("Blackjack")
 clock = pygame.time.Clock()
 
 # Other initializations...
-chip1 = pygame.transform.scale(pygame.image.load('assets/images/chip1.png'), (70, 70))
-chip5 = pygame.transform.scale(pygame.image.load('assets/images/chip5.png'), (70, 70))
-chip10 = pygame.transform.scale(pygame.image.load('assets/images/chip10.png'), (70, 70))
-chip25 = pygame.transform.scale(pygame.image.load('assets/images/chip25.png'), (70, 70))
-chip50 = pygame.transform.scale(pygame.image.load('assets/images/chip50.png'), (70, 70))
-chip100 = pygame.transform.scale(pygame.image.load('assets/images/chip100.png'), (70, 70))
+chip1 = pygame.transform.scale(pygame.image.load(resource_path2('chip1.png')), (70, 70))
+chip5 = pygame.transform.scale(pygame.image.load(resource_path2('chip5.png')), (70, 70))
+chip10 = pygame.transform.scale(pygame.image.load(resource_path2('chip10.png')), (70, 70))
+chip25 = pygame.transform.scale(pygame.image.load(resource_path2('chip25.png')), (70, 70))
+chip50 = pygame.transform.scale(pygame.image.load(resource_path2('chip50.png')), (70, 70))
 
-original_width, original_height = pygame.image.load(f'assets/gifs/frame (1).gif').get_size()  # Get size of the first frame
+original_width, original_height = pygame.image.load(resource_path2(f'frame (1).gif')).get_size()  # Get size of the first frame
 scaled_width = original_width * 0.8
 scaled_height = original_height * 0.8
 
 # Pre-load frames
-frames = [pygame.transform.scale(pygame.image.load(f'assets/gifs/frame ({i+1}).gif'), (scaled_width, scaled_height)) for i in range(39)]
+frames = [pygame.transform.scale(pygame.image.load(resource_path2(f'frame ({i+1}).gif')), (scaled_width, scaled_height)) for i in range(39)]
 frame_count = len(frames)
 current_frame = 0
 frame_rate = 10  # Frames per second
 
-table = pygame.transform.scale(pygame.image.load('assets/images/table.png'), (1000, 600))
+table = pygame.transform.scale(pygame.image.load(resource_path2('table.png')), (1000, 600))
 
 # colours, font, and coordinates for text
 X = 400
@@ -42,7 +53,7 @@ def draw_button(screen, color, x, y, width, height):
     pygame.draw.rect(screen, color, (x, y, width, height))
     
 def draw_text(text, x, y, size):
-    font = pygame.font.Font('Lato-Black.ttf', size)
+    font = pygame.font.Font(resource_path2('Lato-Black.ttf'), size)
     # text object
     text_surface = font.render(text, True, (255,255,255))
     
@@ -56,7 +67,7 @@ def draw_text(text, x, y, size):
     screen.blit(text_surface, textRect)
     return text_surface
 
-button_image = pygame.image.load('assets/images/gray.png')
+button_image = pygame.image.load(resource_path2('gray.png'))
 button_image_2 = button_image = pygame.transform.scale(button_image, (500, 160))
 button_image = pygame.transform.scale(button_image, (700, 260))
 
@@ -75,8 +86,9 @@ bet_placed = False
 bet_amount = 0
 hit = False
 placed = False
+game_over_played = False
 
-background_image = pygame.image.load('assets/images/casino.png')
+background_image = pygame.image.load(resource_path2('casino.png'))
 background_image = pygame.transform.scale(background_image, (1200, 600))
 
 while running:
@@ -88,6 +100,7 @@ while running:
         bet_placed = False
         hit = False
         stand = False
+        game_over_played = False
         bet_amount = 0
         screen.blit(background_image, (-130, 0))
         current_frame += 1
@@ -113,13 +126,17 @@ while running:
                 x, y = event.pos
                 # Adjusted for "Play Now" button
                 if 600 <= x <= 850 and 275 <= y <= 345:
+                    click.play()
                     menu = False
                     waiting_for_player1 = True
                     waiting_for_player2 = False
                 # Adjusted for "Quit" button
                 if 600 <= x <= 850 and 370 <= y <= 440:
+                    click.play()
                     running = False
     else:
+        if len(card_deck) == 0:
+            card_deck = 4 * cards
         screen.blit(table, (0, 0))
         draw_button(screen, (200,0,0), 31, 29, 40, 40)
         draw_text('X', 100, 95, 40)
@@ -159,49 +176,60 @@ while running:
                 mouse_pos = pygame.mouse.get_pos()
                 if 31 < mouse_pos[0] < 31 + 40 and 29 < mouse_pos[1] < 29 + 40:
                     # X
+                    click.play()
                     pygame.quit()
                     sys.exit()
                 elif 30 < mouse_pos[0] < 30 + 115 and 75 < mouse_pos[1] < 75 + 44:
                     # Menu
+                    click.play()
                     menu = True
                 elif 580 <= mouse_pos[0] <= 700 and 480 <= mouse_pos[1] <= 530 and placed:
                     # Stand
+                    click.play()
                     stand = True
                 elif 320 <= mouse_pos[0] <= 440 and 480 <= mouse_pos[1] <= 530 and placed and player1.hand_value <= 21:
                     # Hit
+                    click.play()
                     hit = True
                 elif 30 <= mouse_pos[0] <= 145 and 270 <= mouse_pos[1] <= 314 and bet_placed and not placed:
                     # Reset
+                    reset.play()
                     player1.balance += bet_amount
                     bet_amount = 0
                     bet_placed = False
                 elif 30 <= mouse_pos[0] <= 145 and 210 <= mouse_pos[1] <= 314 and bet_placed and not placed:
                     # Place
+                    click.play()
                     placed = True
                     dealer.setup_hand(card_deck)
                     player1.setup_hand(card_deck)
 
-                elif chip1_rect.collidepoint(mouse_pos):
+                elif chip1_rect.collidepoint(mouse_pos) and not placed:
+                    coin.play()
                     if player1.balance >= 1:
                         bet_amount += 1
                         player1.balance -= 1
                         bet_placed = True
-                elif chip5_rect.collidepoint(mouse_pos):
+                elif chip5_rect.collidepoint(mouse_pos) and not placed:
+                    coin.play()
                     if player1.balance >= 5:
                         bet_amount += 5
                         player1.balance -= 5
                         bet_placed = True
-                elif chip10_rect.collidepoint(mouse_pos):
+                elif chip10_rect.collidepoint(mouse_pos) and not placed:
+                    coin.play()
                     if player1.balance >= 10:
                         bet_amount += 10
                         player1.balance -= 10
                         bet_placed = True
-                elif chip25_rect.collidepoint(mouse_pos):
+                elif chip25_rect.collidepoint(mouse_pos) and not placed:
+                    coin.play()
                     if player1.balance >= 25:
                         bet_amount += 25
                         player1.balance -= 25
                         bet_placed = True
-                elif chip50_rect.collidepoint(mouse_pos):
+                elif chip50_rect.collidepoint(mouse_pos) and not placed:
+                    coin.play()
                     if player1.balance >= 50:
                         bet_amount += 50
                         player1.balance -= 50
@@ -216,10 +244,14 @@ while running:
             result = check_winner(player1, dealer)
             screen.blit(button_image_2, (265, 310))   
             if result == 0:
+                draw.play()
                 draw_text("Dealer Won!", 1035, 770, 70)
             elif result == 1:
+                draw.play()
                 draw_text("Draw!", 1035, 770, 70)
+                player1.balance += bet_amount
             elif result == 2:
+                win.play()
                 draw_text("Player Won!", 1035, 770, 70)
                 if player1.hand_value == 21:
                     player1.balance += bet_amount * 2.5 # Blackjack pays 3:2
@@ -239,6 +271,7 @@ while running:
             dealer.reset_hand()
             stand = False
         elif hit:
+            card_flip.play()
             player1.hit_card(card_deck)
             pygame.display.flip()
             hit = False
@@ -259,6 +292,9 @@ while running:
         elif player1.balance == 0:
             screen.blit(button_image_2, (265, 310))  
             draw_text("Game Over", 1035, 770, 70)
+            if not game_over_played:
+                game_over.play()
+                game_over_played = True
         
     
 
